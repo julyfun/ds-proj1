@@ -93,6 +93,7 @@ public:
             if (pa != nullptr) {
                 pa->ch[pa->ch[1] == ptr] = nullptr;
             } else {
+                // 这就是只有一个元素的情况
                 this->root = nullptr;
             }
             this->tsize--;
@@ -151,6 +152,7 @@ public:
         auto ptr = this->real_find(key);
         if (ptr == nullptr) {
             this->insert(key, V());
+            ptr = this->real_find(key);
         }
         return (V&)(ptr->value); // 修改 value 不需要监视
     }
@@ -207,8 +209,7 @@ public:
 
     ~BSTMap() {
         std::cerr << "BSTMap::~BSTMap: destructing BSTMap\n";
-        this->clear();
-        this->root = nullptr;
+        this->clear(); // 不需要额外重置 root，在 erase 只剩一个节点的时候会做
     }
 };
 

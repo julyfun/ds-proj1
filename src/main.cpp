@@ -66,6 +66,10 @@ void test_other_thing() {
     map["Si Jia"] = 2.0;
     std::cout << map["Si Jia"] << std::endl;
 
+    map.erase("Si Jia");
+    map["Si Jia"] = 2.0;
+    std::cout << map["Si Jia"] << std::endl;
+
     // test for at
     map.at("Si Jia") *= 3.0;
     std::cout << map.at("Si Jia") << std::endl;
