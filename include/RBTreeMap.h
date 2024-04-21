@@ -4,36 +4,16 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <memory>
 
 #include "Map.h"
+#include "RBTreeNode.h"
 #include "log.h"
 
 using std::cerr;
 using std::cout;
+using std::max;
 using std::swap;
-
-using K = int;
-using V = int;
-template<typename K, typename V>
-class RBTreeNode {
-public:
-    K key;
-    V value;
-    RBTreeNode* ch[2];
-    RBTreeNode* pa;
-    // RBTreeNode* prev;
-    bool red; // 0 is black, 1 is red
-    RBTreeNode(const K& key, const V& value, const bool red): key(key), value(value), red(red) {
-        this->ch[0] = this->ch[1] = this->pa = nullptr;
-    }
-    RBTreeNode(const K& key, const V& value, RBTreeNode* pa, RBTreeNode* const nil, const bool red):
-        key(key),
-        value(value),
-        pa(pa),
-        red(red) {
-        this->ch[0] = this->ch[1] = nil;
-    }
-};
 
 template<typename K, typename V>
 class RBTreeMap: public Map<K, V> {
@@ -93,7 +73,6 @@ private:
         // 1. 没有节点
         if (this->root == this->nil) {
             // 根节点是黑色
-            cerr << "RBTreeMap::insert: insert root\n";
             this->root = new RBTreeNode<K, V>(key, value, this->nil, this->nil, false);
             this->tsize++;
             return this->root;
@@ -101,18 +80,15 @@ private:
         // 2. 能找到 key
         auto [me, pa, d] = this->find_info(key);
         if (me != this->nil) {
-            cerr << "RBTreeMap::insert: key exists, change value\n";
             me->value = value;
             return me;
         }
-        cerr << "RBTreeMap::insert: insert new node [" << key << "]\n";
         // 插入新节点
         auto* retval = me = new RBTreeNode<K, V>(key, value, pa, this->nil, true);
         this->tsize++;
         pa->ch[d] = me;
         // 不可更新 nil 父亲
         while (me->pa->red) {
-            cerr << "    RBTreeMap::insert: managing [" << me->key << "]\n";
             // 4. 插入节点的父亲为红色（危）
             // * 根节点是黑色，所以父亲不是根，所以爷爷存在
             // * 爷爷肯定是黑色
@@ -149,23 +125,48 @@ private:
         return retval;
     }
 
-    RBTreeNode<K, V>* next(RBTreeNode<K, V>* me) {
-        if (me->ch[1] != this->nil) {
+    static RBTreeNode<K, V>* next(RBTreeNode<K, V>* me) {
+        if (!is_nil(me->ch[1])) {
             me = me->ch[1];
-            while (me->ch[0] != this->nil) {
+            while (!is_nil(me->ch[0])) {
                 me = me->ch[0];
             }
             return me;
         }
-        while (me != root && me != me->pa->ch[0]) {
+        while (!is_nil(me->pa) && me != me->pa->ch[0]) {
             me = me->pa;
         }
         return me->pa; // [todo] if me->pa == nil then return end()
     }
 
+    static RBTreeNode<K, V>* prev(RBTreeNode<K, V>* me) {
+        if (!is_nil(me->ch[0])) {
+            me = me->ch[0];
+            while (!is_nil(me->ch[1])) {
+                me = me->ch[1];
+            }
+            return me;
+        }
+        while (!is_nil(me->pa) && me != me->pa->ch[1]) {
+            me = me->pa;
+        }
+        if (is_nil(me->pa)) {
+            throw std::out_of_range("RBTreeMap::prev: no previous element.");
+        }
+        return me->pa; // [todo] if me->pa == nil then return throw an error
+    }
+
+    RBTreeNode<K, V>* first() {
+        auto* me = this->root;
+        while (!is_nil(me->ch[0])) {
+            me = me->ch[0];
+        }
+        return me;
+    }
+
 public:
     RBTreeMap() {
-        this->nil = new RBTreeNode<K, V>(K(), V(), false);
+        this->nil = new RBTreeNode<K, V>();
         this->root = this->nil;
     }
     void insert(K key, V value) {
@@ -176,10 +177,8 @@ public:
     void erase(K key) {
         auto [me, pa, d] = this->find_info(key);
         if (me == this->nil) {
-            cerr << "RBTreeMap::erase: key not found\n";
             return;
         }
-        cerr << "RBTreeMap::erase: erase [" << key << "]\n";
         // G1: me 两个孩子
         if (me->ch[0] != this->nil && me->ch[1] != this->nil) {
             auto* nxt = this->next(me);
@@ -311,16 +310,29 @@ public:
     }
 
 public:
-    void dfs_print() { // very useful, but not available for parent pointer
+    int get_depth() {
+        return this->dfs_depth(this->root);
+    }
+
+private:
+    int dfs_depth(RBTreeNode<K, V>* me) {
+        if (me == this->nil) {
+            return 0;
+        }
+        return max(this->dfs_depth(me->ch[0]), this->dfs_depth(me->ch[1])) + 1;
+    }
+
+public:
+    void print_tree() { // very useful, but not available for parent pointer
         cout << "{\n";
         if (this->root != this->nil) {
-            this->dfs(this->root, 1, this->root->pa, -1);
+            this->dfs_print_check(this->root, 1, this->root->pa, -1);
         }
         cout << "}\n";
     }
 
 private:
-    void dfs(RBTreeNode<K, V>* me, int depth, RBTreeNode<K, V>* pa, int from) {
+    void dfs_print_check(RBTreeNode<K, V>* me, int depth, RBTreeNode<K, V>* pa, int from) {
         if (pa != me->pa) {
             cout << "me: " << me->key << " in pa: " << pa->key << " stored pa: " << me->pa->key
                  << "\n";
@@ -339,10 +351,10 @@ private:
             cout << "\n";
         }
         if (me->ch[0] != this->nil) {
-            this->dfs(me->ch[0], depth + 1, me, 0);
+            this->dfs_print_check(me->ch[0], depth + 1, me, 0);
         }
         if (me->ch[1] != this->nil) {
-            this->dfs(me->ch[1], depth + 1, me, 1);
+            this->dfs_print_check(me->ch[1], depth + 1, me, 1);
         }
         if (has_child) {
             cout << log::indent_of_depth(depth) << "}\n";
@@ -368,6 +380,132 @@ private:
         if (me->ch[1] != this->nil) {
             this->dfs_print_inorder(me->ch[1]);
         }
+    }
+
+public:
+    struct iterator {
+    private:
+        RBTreeNode<K, V>* me;
+        RBTreeNode<K, V>* root;
+
+    public:
+        using iterator_category = std::forward_iterator_tag;
+        using difference_type = std::ptrdiff_t;
+        using value_type = std::pair<const K&, V&>;
+        using pointer = value_type*;
+        using reference = value_type&;
+        // delete these is ok
+
+        iterator(RBTreeNode<K, V>* me, RBTreeNode<K, V>* root): me(me), root(root) {}
+
+        std::pair<const K&, V&> operator*() {
+            return { this->me->key, this->me->value };
+        }
+
+        /// should return a fake pointer
+        // std::pair<const K&, V&> operator->() {
+        //     return { this->me->key, this->me->value };
+        // }
+        // 不支持，若要返回指针，必须有人持有该变量，则需要将 Node 中的类型改为实际的 pair (is there tuple?)
+        // 实际上不应该新生成一个 pair 实例，而是 key 和 value 的引用的捆绑
+        // 如何不创建新实例而返回引用的捆绑呢？
+
+        std::shared_ptr<std::pair<const K&, V&>> operator->() {
+            return std::make_shared<std::pair<const K&, V&>>(this->operator*());
+            // holy sh
+        }
+
+        iterator operator++() {
+            // this->me = RBTreeMap::next(this->me); // with pa ptr
+            if (!is_nil(this->me->ch[1])) {
+                this->me = this->me->ch[1];
+                while (!is_nil(this->me->ch[0])) {
+                    this->me = this->me->ch[0];
+                }
+            } else {
+                auto* last_left = new RBTreeNode<K, V>(); // nil
+                auto* cur = this->root;
+                while (!(cur == this->me)) {
+                    int d = this->me->key > cur->key;
+                    if (d == 0) {
+                        last_left = cur;
+                    }
+                    cur = cur->ch[d];
+                }
+                this->me = last_left;
+            }
+            return *this; // wtf returning a std::pair???
+        }
+
+        iterator operator++(int) {
+            auto tmp = *this;
+            ++(*this);
+            return tmp;
+        }
+
+        /// invalid for nil (which is a fake end)
+        iterator operator--() {
+            // this->me = RBTreeMap::prev(this->me);
+            if (!is_nil(this->me->ch[0])) {
+                this->me = this->me->ch[0];
+                while (!is_nil(this->me->ch[1])) {
+                    this->me = this->me->ch[1];
+                }
+            } else {
+                auto* last_right = new RBTreeNode<K, V>(); // nil
+                auto* cur = this->root;
+                while (!(cur == this->me)) {
+                    int d = this->me->key > cur->key;
+                    if (d == 1) {
+                        last_right = cur;
+                    }
+                    cur = cur->ch[d];
+                }
+                this->me = last_right;
+            }
+            if (is_nil(this->me)) {
+                throw std::out_of_range("RBTreeMap::Iterator::operator-- out of range");
+            }
+            return *this;
+        }
+        iterator operator--(int) {
+            auto tmp = *this;
+            --(*this);
+            return tmp;
+        }
+
+        bool operator==(const iterator& other) const {
+            return this->me == other.me
+                || (is_nil(this->me) && is_nil(other.me)); // 没错可以访问同类的 private 变量
+        }
+
+        bool operator!=(const iterator& other) const {
+            return !(*this == other);
+        }
+
+        bool operator<(const iterator& other) const {
+            if (is_nil(this->me) && is_nil(other->me)) {
+                return false;
+            }
+            if (is_nil(this->me) != is_nil(other->me)) {
+                return is_nil(this->me) < is_nil(other->me);
+            }
+            return this->key < other->key;
+        }
+    };
+
+public:
+    iterator begin() {
+        return iterator(this->first(), this->root);
+    }
+
+    iterator end() {
+        return iterator(this->nil, this->root);
+    }
+
+    iterator find_by_key(const K& key) {
+        auto [me, pa, d] = this->find_info(key);
+        return iterator(me, this->root);
     }
 };
 

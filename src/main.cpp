@@ -120,7 +120,7 @@ void test_rbtree_insert() {
     for (int i = 1; i <= 10; i++) {
         map.insert(i, std::to_string(i));
     }
-    map.dfs_print();
+    map.print_tree();
 }
 
 void test_rbtree_erase() {
@@ -132,11 +132,11 @@ void test_rbtree_erase() {
     for (int i = 1; i <= 10; i += 2) {
         map.erase(i);
     }
-    map.dfs_print();
+    map.print_tree();
 }
 
 void test_rbtree_at_index_find() {
-    cout << "test test_rbtree_erase ...\n";
+    cout << "test test_rbtree_at_index_find ...\n";
     RBTreeMap<int, std::string> map;
     for (int i = 1; i <= 10; i++) {
         map.insert(i, std::to_string(i));
@@ -175,10 +175,43 @@ void test_rbtree_size_empty_clear() {
     assert(map.size() == 0);
 }
 
+void test_rbtree_bench() {
+    RBTreeMap<int, float> map;
+    for (int i = 1; i <= 1e6; i++) {
+        map.insert(i, i * 10.0);
+    }
+    cout << "map.size(): " << map.size() << "\n";
+    cout << "map.get_depth(): " << map.get_depth() << "\n";
+}
+
+void test_rbtree_iterator() {
+    RBTreeMap<int, float> map;
+    for (int i = 1; i <= 1e1; i++) {
+        map.insert(i, i * 10.0);
+    }
+    RBTreeMap<int, float>::iterator i = map.begin();
+    i++;
+    (*i).second = 999;
+    i--;
+    try {
+        i--; // should throw an exception
+    } catch (std::out_of_range& e) {
+        cout << e.what() << "\n";
+    }
+    cout << "all elements in map:\n";
+    for (auto [key, value]: map) {
+        cout << key << " " << value << "\n";
+    }
+    auto it = map.find_by_key(5);
+    cout << "map.find(5): " << it->first << " " << it->second << "\n";
+}
+
 int main() {
     test_rbtree_insert();
     test_rbtree_erase();
     test_rbtree_at_index_find();
     test_rbtree_size_empty_clear();
+    test_rbtree_bench();
+    test_rbtree_iterator();
     return 0;
 }
