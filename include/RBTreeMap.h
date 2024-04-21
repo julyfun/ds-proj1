@@ -169,12 +169,12 @@ public:
         this->nil = new RBTreeNode<K, V>();
         this->root = this->nil;
     }
-    void insert(K key, V value) {
+    void insert(K key, V value) override {
         this->insert_returning_pointer(key, value);
     }
 
     /// 删除节点。ref: https://ysw1912.github.io/post/cc++/rbtree_delete/
-    void erase(K key) {
+    void erase(K key) override {
         auto [me, pa, d] = this->find_info(key);
         if (me == this->nil) {
             return;
@@ -269,12 +269,12 @@ public:
     // ref: https://www.cnblogs.com/crazymakercircle/p/16320430.html#autoid-h3-7-1-0
     // ref: https://zhuanlan.zhihu.com/p/530685542
 
-    V* find(K key) {
+    V* find(K key) override {
         auto [me, pa, d] = this->find_info(key);
         return me == this->nil ? nullptr : &me->value;
     }
 
-    V& operator[](K key) {
+    V& operator[](K key) override {
         auto [me, pa, d] = this->find_info(key);
         if (me == this->nil) {
             auto where = this->insert_returning_pointer(key, V());
@@ -283,7 +283,7 @@ public:
         return (V&)(me->value);
     }
 
-    V& at(K key) {
+    V& at(K key) override {
         auto [me, pa, d] = this->find_info(key);
         if (me == this->nil) {
             throw std::out_of_range("RBTreeMap::at: key not found");
@@ -291,15 +291,15 @@ public:
         return (V&)(me->value);
     }
 
-    int size() {
+    int size() override {
         return this->tsize;
     }
 
-    bool empty() {
+    bool empty() override {
         return this->tsize == 0;
     }
 
-    void clear() {
+    void clear() override {
         while (!this->empty()) {
             this->erase(this->root->key);
         }
