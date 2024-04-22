@@ -1,4 +1,5 @@
 *.pdf
+.obsidian
 
 # Prerequisites
 *.d

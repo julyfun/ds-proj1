@@ -61,7 +61,7 @@ source: [GitHub](https://github.com/julyfun/github-test)
 
 - Run the tests by compiling `Stage 2 - Balanced BST` and run `./main`, this may take a few seconds
 
-- Normal tests for the interfaces are implemented in different functions in `main.cpp`, generally including all the cases for `Stage - 1`:
+- Normal tests for the interfaces are implemented in different functions in `main.cpp`, generally covering all cases in `Stage - 1`:
 
 ```cpp
 test_rbtree_insert()
@@ -71,7 +71,7 @@ test_rbtree_size_empty_clear();
 ```
 
 - Improved debugger function `print_tree()` and `print_sequences()` are implemented to print the tree structure and the sequences of the tree nodes, clearly showing that the order of keys are maintained
-- **Benchmark tests**: in `test_rbtree_bench()`, $10^6$ elements are inserted in the tree. This would take less than 1s in a modern cpu. After that, the size and the depth is printed. In this case, $size = 1000000$ and $depth = 37$, which is in the magnitude of $O(\log n)$
+- **Benchmark tests**: in `test_rbtree_bench()`, $10^6$ elements are inserted in the tree. After that, the size and the depth is printed. In this case, $size = 1000000$ and $depth = 37$, the latter is in the magnitude of $O(\log n)$
 - **Yet another benchmark tests**: an interesting test is in `test_two_trees_bench()`, it inserts `200000` elements in both `BSTMap` and `RBTreeMap`, and compare the time taken. The result (single thread on M1 chip):
 
 ```
