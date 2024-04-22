@@ -109,4 +109,6 @@ RBTreeMap is inserting 200000 elements...
   - Dereferencing of an iterator
   - Catch the exception of `i--` when `i == begin()`
   - `find_by_key()` the new find method who returns iterator
-  - Compatility with the range-based for loop `for (auto [key, value]: map)` and C++ algorithm library: `std::for_each()`, `std::find_if()`
+  - Compatility of `RBTreeMap` with the range-based for loop `for (auto [key, value]: map)` and C++ algorithm library:
+    - `std::for_each(map.begin(), map.end(), [](auto p) { p.second *= 1.2; })` - multiply the value of each node by $1.2$
+    - `std::find_if(map.begin(), map.end(), [&n](auto p) { return p.first == n; })` - find if a key exists in the tree
