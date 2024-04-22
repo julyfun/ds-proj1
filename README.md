@@ -97,7 +97,7 @@ RBTreeMap is inserting 200000 elements...
 ### Implementation without `parent` pointer yet still fast
 
 - No `parent` pointer are used in the iterator. The idea is to store pointers to both the current node and the root node. To find the successor of a node, first try if it has a right child:
-  - If so, find the leftmost child of that node, which is the successor. The time complexity is $O(\log n)$ as the depth of the tree is in that magnitude.
+  - If so, find the leftmost child of that node, which is the successor. The time complexity is $O(\log n)$ as the depth of the tree is in that magnitude
   - If not, find the current node from the root, along the path, store the last "left-child" branch, where the parent is successor. For the same reason it is $O(\log n)$
 
 ### Tests for iterator
