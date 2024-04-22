@@ -69,6 +69,8 @@ private:
         }
     }
 
+    // ref: https://www.cnblogs.com/crazymakercircle/p/16320430.html#autoid-h3-7-1-0
+    // ref: https://zhuanlan.zhihu.com/p/530685542
     RBTreeNode<K, V>* insert_returning_pointer(K key, V value) {
         // 1. 没有节点
         if (this->root == this->nil) {
@@ -266,9 +268,6 @@ public:
         }
     }
 
-    // ref: https://www.cnblogs.com/crazymakercircle/p/16320430.html#autoid-h3-7-1-0
-    // ref: https://zhuanlan.zhihu.com/p/530685542
-
     V* find(K key) override {
         auto [me, pa, d] = this->find_info(key);
         return me == this->nil ? nullptr : &me->value;
@@ -362,7 +361,7 @@ private:
     }
 
 public:
-    void dfs_print_sequence() {
+    void print_sequence() {
         if (this->root == this->nil) {
             cout << "RBTreeMap::dfs_print_sequence: empty\n";
             return;

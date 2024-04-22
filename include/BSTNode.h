@@ -12,8 +12,6 @@
  */
 template<typename K, typename V>
 class BSTNode { // or struct BSTNode if you prefer
-    // TODO: member variables
-    // TODO: constructor
 public:
     K key;
     V value;

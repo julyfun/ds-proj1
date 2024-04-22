@@ -17,7 +17,6 @@
 template<typename K, typename V>
 class BSTMap: public Map<K, V> {
 private:
-    // TODO: member variables and helper functions (if necessary)
     BSTNode<K, V>* root;
     std::size_t tsize = 0;
 
@@ -33,14 +32,10 @@ private:
         auto cur = this->root;
         while (cur != nullptr) {
             if (key == cur->key) {
-                // std::cerr << "BSTMap::real_find: key " << key << " found with value " << cur->value
-                //           << "\n";
                 return cur;
             }
             cur = cur->ch[key > cur->key];
         }
-        // std::cerr << "BSTMap::real_find: key " << key << " not found"
-        //           << "\n";
         return nullptr;
     }
 
@@ -53,12 +48,9 @@ public:
     void insert(K key, V value) override {
         // 重复的 key 进行更新
         if (auto ptr = this->real_find(key); ptr != nullptr) {
-            std::cerr << "BSTMap::insert: key " << key << " already exists, update value to "
-                      << value << "\n";
             ptr->value = value;
             return;
         }
-        std::cerr << "BSTMap::insert: key " << key << " inserted with value " << value << "\n";
 
         auto cur = this->root;
         BSTNode<K, V>* parent = nullptr; // 准备更新父亲的孩子
@@ -81,13 +73,9 @@ public:
     void erase(K key) override {
         auto ptr = this->real_find(key);
         if (ptr == nullptr) {
-            std::cerr << "BSTMap::erase: key " << key << " not found"
-                      << "\n";
             return;
         }
         if (ptr->ch[0] == nullptr && ptr->ch[1] == nullptr) {
-            std::cerr << "BSTMap::erase: key " << key << " erased directly"
-                      << "\n";
             // 如果有父亲，要改变父亲的儿子
             auto pa = ptr->pa;
             if (pa != nullptr) {
@@ -100,8 +88,6 @@ public:
             delete ptr;
             return;
         }
-        std::cerr << "BSTMap::erase: key " << key << " erased by cutting"
-                  << "\n";
         for (int i = 0; i <= 1; i++) {
             if (auto ch = ptr->ch[i]; ch != nullptr) {
                 auto pa = ptr->pa;
@@ -137,14 +123,10 @@ public:
         auto cur = this->root;
         while (cur != nullptr) {
             if (key == cur->key) {
-                std::cerr << "BSTMap::find: key " << key << " found with value " << cur->value
-                          << "\n";
                 return &cur->value;
             }
             cur = cur->ch[key > cur->key];
         }
-        std::cerr << "BSTMap::find: key " << key << " not found"
-                  << "\n";
         return nullptr;
     }
 
@@ -212,7 +194,5 @@ public:
         this->clear(); // 不需要额外重置 root，在 erase 只剩一个节点的时候会做
     }
 };
-
-// TODO: implement (define) your functions here
 
 #endif // PROJECT_MAP_BSTMAP_H

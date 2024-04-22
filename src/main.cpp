@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <cmath>
 #include <iostream>
 #include <random>
@@ -12,7 +13,6 @@
 
 #include "BSTMap.h"
 #include "RBTreeMap.h"
-// TODO: include your own balanced BST Map implementation here
 
 using std::cerr;
 using std::cout;
@@ -184,6 +184,33 @@ void test_rbtree_bench() {
     cout << "map.get_depth(): " << map.get_depth() << "\n";
 }
 
+void test_two_trees_bench() {
+    const int n = 2e5;
+    cout << "test test_trees_bench ...\n";
+    Map<int, float>* maps[] = { new BSTMap<int, float>(), new RBTreeMap<int, float>() };
+    std::vector<int> to_insert;
+    for (int i = 1; i <= n; i++) {
+        to_insert.push_back(i);
+    }
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(to_insert.begin(), to_insert.end(), g);
+
+    const char* names[] = { "BSTMap", "RBTreeMap" };
+    for (int i = 0; i < 2; i++) {
+        cout << names[i] << " is inserting " << n << " elements...\n";
+        cout.flush();
+        auto start = std::chrono::high_resolution_clock::now();
+        for (int j = 1; j <= n; j++) {
+            maps[i]->insert(to_insert[j], to_insert[j] * 10.0);
+        }
+        maps[i]->clear();
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        cout << "  it takes " << duration.count() << "ms\n";
+    }
+}
+
 void test_rbtree_iterator() {
     RBTreeMap<int, float> map;
     for (int i = 1; i <= 1e1; i++) {
@@ -204,6 +231,20 @@ void test_rbtree_iterator() {
     }
     auto it = map.find_by_key(5);
     cout << "map.find(5): " << it->first << " " << it->second << "\n";
+
+    cout << "After multiply each value by 1.2:\n";
+    std::for_each(map.begin(), map.end(), [](auto p) { p.second *= 1.2; });
+    map.print_tree();
+
+    for (const int n: { 9, 10, 11, 12 }) {
+        if (auto it = std::find_if(map.begin(), map.end(), [&n](auto p) { return p.first == n; });
+            it != map.end())
+        {
+            cout << "map contains key " << n << " with value " << it->second << "\n";
+        } else {
+            cout << "map does not contain key " << n << "\n";
+        }
+    }
 }
 
 int main() {
@@ -212,6 +253,7 @@ int main() {
     test_rbtree_at_index_find();
     test_rbtree_size_empty_clear();
     test_rbtree_bench();
+    test_two_trees_bench();
     test_rbtree_iterator();
     return 0;
 }
